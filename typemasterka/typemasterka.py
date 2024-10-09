@@ -5,50 +5,43 @@ from typemasterka import utils
 
 
 class App:
-    def new_letter(self):
-        return random.choice(self.character_subset)
+    def __init__(self, character_subset: str, stats_dict_path: str) -> None:
+        self.__character_subset = character_subset
+        self.__current_letter = self.__new_letter()
+        self.__stats_dict_path = stats_dict_path
+        self.__stats_dict = utils.load_json(self.__stats_dict_path)
 
-    def check_if_in_dict_if_not_add(self, char: str):
-        if char not in self.stats_dict:
-            self.stats_dict[char] = []
+        self.__root = tk.Tk()
+        self.__root.title("Type the Letter")
+        self.__root.geometry("300x200")
+        self.__root.bind("<KeyPress>", self.__check_key)
 
-    def add_char_to_dict(self, char: str):
-        self.check_if_in_dict_if_not_add(self.current_letter)
-        self.check_if_in_dict_if_not_add(char)
-        self.stats_dict[self.current_letter] += char
+        self.__letter_label = tk.Label(
+            self.__root, text=self.__current_letter, font=("Helvetica", 72))
+        self.__letter_label.pack(expand=True)
 
-    def check_key(self, event):
-        event_char = event.char
-        self.add_char_to_dict(event_char)
+    def run(self) -> None:
+        self.__root.mainloop()
+        utils.dump_json(self.__stats_dict_path, self.__stats_dict)
 
-        if event_char == self.current_letter:
-            self.update_letter()
+    def __new_letter(self) -> str:
+        return random.choice(self.__character_subset)
 
-    def update_letter(self):
-        self.current_letter = self.new_letter()
-        self.set_letter_label(self.current_letter)
-
-    def set_letter_label(self, new_char: str):
+    def __set_letter_label(self, new_char: str) -> None:
         assert (len(new_char) == 1)
-        self.letter_label.config(text=new_char)
+        self.__letter_label.config(text=new_char)
 
-    def __init__(self, character_subset, stats_dict_path: str) -> None:
-        self.character_subset = character_subset
+    def __update_letter(self) -> None:
+        self.__current_letter = self.__new_letter()
+        self.__set_letter_label(self.__current_letter)
 
-        self.current_letter = self.new_letter()
-        self.stats_dict_path = stats_dict_path
-        self.stats_dict = utils.load_json(self.stats_dict_path)
+    def __add_char_to_dict(self, char: str) -> None:
+        if self.__current_letter not in self.__stats_dict:
+            self.__stats_dict[self.__current_letter] = []
+        self.__stats_dict[self.__current_letter] += char
 
-        self.root = tk.Tk()
-        self.root.title("Type the Letter")
-        self.root.geometry("300x200")
-
-        self.root.bind("<KeyPress>", self.check_key)
-
-        self.letter_label = tk.Label(
-            self.root, text=self.current_letter, font=("Helvetica", 72))
-        self.letter_label.pack(expand=True)
-
-    def run(self):
-        self.root.mainloop()
-        utils.dump_json(self.stats_dict_path, self.stats_dict)
+    def __check_key(self, event: tk.Event) -> None:
+        event_char = event.char
+        self.__add_char_to_dict(event_char)
+        if event_char == self.__current_letter:
+            self.__update_letter()
