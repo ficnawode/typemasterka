@@ -11,48 +11,40 @@ class Analyzer:
         self.stats_dict = load_json(
             stats_dict_path)
 
-    def draw_cov_matrix(self):
+    def __draw_confusion_matrix(self):
         data = self.stats_dict
         letters = sorted(set(data.keys()).union(*data.values()))
 
-        # Step 2: Create a frequency matrix
         matrix = np.zeros((len(letters), len(letters)))
 
-        # Step 3: Count frequencies of letters in each key's list
         for i, key in enumerate(letters):
             if key in data:
                 counter = Counter(data[key])
-                # Total occurrences of letters under this key
                 total = sum(counter.values())
                 for j, letter in enumerate(letters):
-                    # Normalize by total count
-                    matrix[i, j] = counter[letter] / \
-                        total if total > 0 else 0
+                    matrix[i, j] = counter[letter] / total if total > 0 else 0
 
-        # Step 4: Plot the heatmap
         plt.figure(figsize=(8, 6))
         sns.heatmap(matrix, annot=True, cmap="Blues",
                     xticklabels=letters, yticklabels=letters)
-        plt.xlabel("Letter assigned")
-        plt.ylabel("Letter typed")
+        plt.xlabel("Letter typed")
+        plt.ylabel("Letter assigned")
         plt.show()
 
         pass
 
-    def draw_char_hist(self, char):
+    def __draw_char_hist(self, char):
         data = self.stats_dict
         if char not in data:
             print(
-                f'Your stats dictionary contains no data about the character \'{char}\'')
+                f'Characters typed while \'{char}\' assigned')
             return
         letter_counts = Counter(data[char])
 
-        # Step 3: Sort letters by frequency in descending order
         sorted_letters = sorted(
             letter_counts.items(), key=lambda x: x[1], reverse=True)
-        letters, counts = zip(*sorted_letters)  # Unzip into two lists
+        letters, counts = zip(*sorted_letters)
 
-        # Step 4: Create the bar plot
         plt.figure(figsize=(8, 6))
         plt.bar(letters, counts, color='skyblue')
         plt.title(f"Frequency of Letters Under Key '{
@@ -61,23 +53,28 @@ class Analyzer:
         plt.ylabel("Frequency")
         plt.show()
 
+    def __handle_cmd(self, cmd):
+        if cmd in ['exit', 'quit']:
+            return False
+        elif len(cmd) == 1:
+            self.__draw_char_hist(cmd)
+        elif len(cmd) == 0:
+            pass
+        elif cmd == 'confusion':
+            self.__draw_confusion_matrix()
+        else:
+            print(f'Unknown option: {cmd}')
+        return True
+
     def run(self):
         if not self.stats_dict:
             print("Your stats dictionary is empty, exiting...")
             return
         print(
-            "Enter the character you wish to see the histogram of, or \'covariance\' to see the covariance matrix:")
+            "Enter the character you wish to see the histogram of, or 'confusion' to see the confusion matrix:")
         print("(To exit, type 'exit' or 'quit')")
 
         while (1):
-            current_cmd = input(">>>")
-            if current_cmd in ['exit', 'quit']:
-                return
-            elif len(current_cmd) == 1:
-                self.draw_char_hist(current_cmd)
-            elif len(current_cmd) == 0:
-                pass
-            elif current_cmd == 'covariance':
-                self.draw_cov_matrix()
-            else:
-                print(f'Unknown option: {current_cmd}')
+            cmd = input(">>>")
+            if not self.__handle_cmd(cmd):
+                break

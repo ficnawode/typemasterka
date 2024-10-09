@@ -8,13 +8,16 @@ class App:
     def new_letter(self):
         return random.choice(self.character_subset)
 
-    def add_char_to_dict(self, char: str):
+    def check_if_in_dict_if_not_add(self, char: str):
         if char not in self.stats_dict:
             self.stats_dict[char] = []
+
+    def add_char_to_dict(self, char: str):
+        self.check_if_in_dict_if_not_add(self.current_letter)
+        self.check_if_in_dict_if_not_add(char)
         self.stats_dict[self.current_letter] += char
 
     def check_key(self, event):
-        print(type(event))
         event_char = event.char
         self.add_char_to_dict(event_char)
 

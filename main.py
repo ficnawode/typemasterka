@@ -1,13 +1,12 @@
-from typemasterka import typemasterka
-from typemasterka import tm_analyzer
-import string
+from typemasterka import typemasterka, analyzer, argparser
 
 
 if __name__ == "__main__":
-    analyze = True
+    p = argparser.ArgParser()
+    p.parse()
 
-    if analyze:
-        app = tm_analyzer.Analyzer("stats.json")
+    if p.is_in_analysis_mode:
+        app = analyzer.Analyzer(p.stats_dict_path)
     else:
-        app = typemasterka.App(string.ascii_lowercase, "stats.json")
+        app = typemasterka.App(p.character_subset, p.stats_dict_path)
     app.run()
